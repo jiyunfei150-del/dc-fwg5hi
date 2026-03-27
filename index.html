@@ -1,555 +1,439 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>财务数据中心 · 智能助手原型</title>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; display: flex; overflow: hidden; height: 100vh; }
-
-/* ── Sidebar ─────────────────────────────── */
-.sidebar { width: 216px; background: #13151f; border-right: 1px solid #1e2235; display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; }
-.sidebar-logo { padding: 18px 16px; border-bottom: 1px solid #1e2235; }
-.sidebar-logo h2 { font-size: 15px; color: #a78bfa; font-weight: 700; letter-spacing: -0.3px; }
-.sidebar-logo span { font-size: 11px; color: #475569; }
-.sidebar-section { padding: 12px 0 4px; }
-.sidebar-section-title { padding: 0 16px 6px; font-size: 10.5px; color: #3d4259; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px; color: #64748b; cursor: pointer; transition: all 0.12s; border-left: 2px solid transparent; white-space: nowrap; }
-.nav-item:hover { background: #1a1d2e; color: #cbd5e1; }
-.nav-item.active { background: #1a1d2e; color: #a78bfa; border-left-color: #7c3aed; }
-.nav-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.7; }
-.nav-item.active svg { opacity: 1; }
-
-/* ── Main ────────────────────────────────── */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100vh; }
-.topbar { height: 52px; background: #13151f; border-bottom: 1px solid #1e2235; display: flex; align-items: center; padding: 0 24px; flex-shrink: 0; }
-.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #475569; }
-.breadcrumb .sep { color: #2a2d3e; }
-.breadcrumb .cur { color: #cbd5e1; font-weight: 500; }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
-.user-chip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; }
-.user-avatar { width: 26px; height: 26px; background: #7c3aed; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: white; font-weight: 600; }
-
-.content { flex: 1; padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-
-/* ── Stats ───────────────────────────────── */
-.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.stat-card { background: #13151f; border: 1px solid #1e2235; border-radius: 10px; padding: 14px 16px; }
-.stat-label { font-size: 11px; color: #475569; margin-bottom: 6px; }
-.stat-val { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
-.stat-meta { font-size: 11px; margin-top: 4px; color: #475569; }
-.up { color: #22c55e !important; }
-.down { color: #ef4444 !important; }
-
-/* ── Filter bar ──────────────────────────── */
-.filter-bar { background: #13151f; border: 1px solid #1e2235; border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.filter-group { display: flex; align-items: center; gap: 6px; }
-.filter-label { font-size: 12px; color: #475569; white-space: nowrap; }
-select, input[type=text] { background: #0f1117; border: 1px solid #1e2235; color: #cbd5e1; border-radius: 6px; padding: 5px 8px; font-size: 12px; outline: none; cursor: pointer; }
-select:focus { border-color: #7c3aed; }
-.btn { padding: 5px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; border: none; transition: all 0.12s; font-weight: 500; }
-.btn-primary { background: #7c3aed; color: white; }
-.btn-primary:hover { background: #6d28d9; }
-.btn-ghost { background: transparent; border: 1px solid #1e2235; color: #64748b; }
-.btn-ghost:hover { border-color: #2a2d3e; color: #94a3b8; }
-.filter-bar-right { margin-left: auto; display: flex; gap: 8px; }
-
-/* ── Table ───────────────────────────────── */
-.table-card { background: #13151f; border: 1px solid #1e2235; border-radius: 10px; overflow: hidden; flex: 1; display: flex; flex-direction: column; }
-.table-head-row { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e2235; }
-.table-title { font-size: 13px; font-weight: 600; color: #e2e8f0; }
-.table-subtitle { font-size: 11px; color: #475569; margin-top: 1px; }
-table { width: 100%; border-collapse: collapse; }
-th { background: #0f1117; padding: 9px 14px; text-align: left; font-size: 11px; color: #3d4259; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 1px solid #1e2235; white-space: nowrap; }
-td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid #1a1d2e; color: #cbd5e1; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(124,58,237,0.04); }
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-.badge-g { background: rgba(34,197,94,0.1); color: #22c55e; }
-.badge-y { background: rgba(245,158,11,0.1); color: #f59e0b; }
-.badge-r { background: rgba(239,68,68,0.1); color: #ef4444; }
-.rate-high { color: #22c55e; font-weight: 600; }
-.rate-low { color: #ef4444; font-weight: 600; }
-.rate-mid { color: #94a3b8; }
-.tfoot-row { padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e2235; }
-.tfoot-info { font-size: 12px; color: #475569; }
-.page-btns { display: flex; gap: 4px; }
-.page-btn { padding: 4px 10px; font-size: 12px; border-radius: 5px; border: 1px solid #1e2235; background: transparent; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #7c3aed; border-color: #7c3aed; color: white; }
-.page-btn:hover:not(.active) { border-color: #2a2d3e; color: #94a3b8; }
-
-/* ── AI FAB ──────────────────────────────── */
-.ai-fab {
-  position: fixed; bottom: 24px; right: 24px;
-  width: 50px; height: 50px;
-  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.45);
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 200;
-  border: none;
-}
-.ai-fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(124,58,237,0.55); }
-.ai-fab svg { width: 22px; height: 22px; color: white; }
-
-/* ── AI Panel ────────────────────────────── */
-.ai-panel {
-  position: fixed; bottom: 84px; right: 24px;
-  width: 356px; height: 528px;
-  background: #13151f;
-  border: 1px solid #1e2235;
-  border-radius: 16px;
-  display: flex; flex-direction: column;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.15);
-  z-index: 200;
-  transform-origin: bottom right;
-  transition: opacity 0.2s, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.ai-panel.hide { opacity: 0; transform: scale(0.88) translateY(8px); pointer-events: none; }
-
-.panel-header { padding: 14px 16px; border-bottom: 1px solid #1e2235; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.panel-identity { display: flex; align-items: center; gap: 10px; }
-.panel-avatar { width: 34px; height: 34px; background: linear-gradient(135deg, #7c3aed, #4f46e5); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-.panel-name { font-size: 14px; font-weight: 600; color: #e2e8f0; line-height: 1.2; }
-.panel-online { font-size: 11px; color: #22c55e; display: flex; align-items: center; gap: 3px; margin-top: 1px; }
-.panel-online::before { content: ''; width: 5px; height: 5px; background: #22c55e; border-radius: 50%; display: inline-block; }
-.close-btn { background: none; border: none; color: #3d4259; cursor: pointer; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
-.close-btn:hover { background: #1a1d2e; color: #94a3b8; }
-
-/* Scope selector */
-.scope-bar { padding: 10px 16px 12px; border-bottom: 1px solid #1e2235; flex-shrink: 0; }
-.scope-label { font-size: 10.5px; color: #3d4259; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; margin-bottom: 7px; }
-.scope-row { display: flex; gap: 6px; }
-.scope-opt {
-  flex: 1; padding: 7px 6px; border-radius: 8px; font-size: 12px; cursor: pointer;
-  border: 1px solid #1e2235; background: #0f1117; color: #64748b;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  transition: all 0.12s; font-weight: 500;
-}
-.scope-opt.active { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.4); color: #a78bfa; }
-.scope-opt:hover:not(.active) { border-color: #2a2d3e; color: #94a3b8; }
-.scope-tag { display: inline-flex; align-items: center; gap: 4px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.15); color: #7c6aad; border-radius: 4px; padding: 2px 7px; font-size: 11px; margin-bottom: 8px; }
-
-/* Chat */
-.chat-body { flex: 1; overflow-y: auto; padding: 14px 14px; display: flex; flex-direction: column; gap: 10px; }
-.chat-body::-webkit-scrollbar { width: 4px; }
-.chat-body::-webkit-scrollbar-track { background: transparent; }
-.chat-body::-webkit-scrollbar-thumb { background: #2a2d3e; border-radius: 2px; }
-
-.msg { display: flex; gap: 8px; align-items: flex-start; }
-.msg.me { flex-direction: row-reverse; }
-.m-av { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-.m-av.ai { background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; }
-.m-av.user { background: #1e2235; color: #94a3b8; }
-.bubble { padding: 9px 13px; font-size: 13px; line-height: 1.55; max-width: 86%; }
-.msg.ai .bubble { background: #0f1117; border: 1px solid #1e2235; border-radius: 3px 12px 12px 12px; color: #cbd5e1; }
-.msg.me .bubble { background: #7c3aed; border-radius: 12px 3px 12px 12px; color: white; }
-.thinking { color: #3d4259 !important; font-style: italic; }
-
-/* Input */
-.input-area { padding: 10px 14px 12px; border-top: 1px solid #1e2235; flex-shrink: 0; }
-.input-row { display: flex; gap: 8px; align-items: flex-end; }
-.chat-input {
-  flex: 1; background: #0f1117; border: 1px solid #1e2235;
-  border-radius: 10px; padding: 9px 12px;
-  font-size: 13px; color: #e2e8f0; resize: none;
-  outline: none; font-family: inherit;
-  line-height: 1.4; max-height: 96px;
-  transition: border-color 0.12s;
-}
-.chat-input:focus { border-color: rgba(124,58,237,0.5); }
-.chat-input::placeholder { color: #2a2d3e; }
-.send-btn { width: 34px; height: 34px; background: #7c3aed; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.12s; }
-.send-btn:hover { background: #6d28d9; }
-.hint { font-size: 11px; color: #2a2d3e; text-align: center; margin-top: 6px; }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>财务数据中心 · 智能助手原型</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    .chat-scroll::-webkit-scrollbar{width:4px}
+    .chat-scroll::-webkit-scrollbar-track{background:transparent}
+    .chat-scroll::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px}
+    @keyframes popIn{from{opacity:0;transform:scale(.88) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .panel-anim{animation:popIn .22s cubic-bezier(.34,1.56,.64,1) both}
+    @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+    .thinking-dot{animation:pulse2 1.2s ease-in-out infinite}
+    .thinking-dot:nth-child(2){animation-delay:.2s}
+    .thinking-dot:nth-child(3){animation-delay:.4s}
+  </style>
 </head>
-<body>
+<body style="margin:0" class="bg-gray-50 text-gray-800">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
 
-<!-- ── SIDEBAR ─────────────────────────────────────────────── -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <h2>财务数据中心</h2>
-    <span>Finance DataHub v2.0</span>
-  </div>
+/* ── 菜单 ─────────────────────────────────── */
+const MENU = [
+  { group:'主数据', items:[
+    { key:'company', label:'公司主体管理', icon:'🏢' },
+    { key:'project', label:'项目配置',     icon:'📁' },
+  ]},
+  { group:'结算系统', items:[
+    { key:'summary',  label:'渠道结算汇总',   icon:'📊' },
+    { key:'overseas', label:'海外内购渠道结算', icon:'🌐', active:true },
+    { key:'domestic', label:'国内广告结算',    icon:'📺' },
+    { key:'ocean',    label:'海外广告结算',    icon:'🌊' },
+  ]},
+  { group:'财务报表', items:[
+    { key:'profit',   label:'利润报表',  icon:'💹' },
+    { key:'mgmt',     label:'管报数据集', icon:'📋' },
+    { key:'fx',       label:'汇率配置',  icon:'💱' },
+  ]},
+];
 
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">主数据</div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      公司主体管理
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg>
-      项目配置
-    </div>
-  </div>
+/* ── 状态映射 ─────────────────────────────── */
+const STATUS = {
+  settled: { label:'已结算', dot:'bg-green-500',  cls:'bg-green-50 text-green-700 border border-green-200' },
+  pending: { label:'对账中', dot:'bg-yellow-500', cls:'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+  hold:    { label:'待处理', dot:'bg-red-500',    cls:'bg-red-50 text-red-700 border border-red-200' },
+};
 
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">结算系统</div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-      渠道结算汇总
-    </div>
-    <div class="nav-item active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      海外内购渠道结算
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      国内广告结算
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      海外广告结算
-    </div>
-  </div>
+/* ── Mock 数据 ────────────────────────────── */
+const DATA = [
+  { id:1, channel:'Codashop',        region:'印尼、泰国、马来西亚',     amount:'324,800', fee:'17.5%', share:'82.5%', shareNum:82.5, status:'settled' },
+  { id:2, channel:'Payermax',        region:'中东、东南亚（7国）',       amount:'218,400', fee:'11.2%', share:'88.8%', shareNum:88.8, status:'settled' },
+  { id:3, channel:'Pagsmile',        region:'拉美、中东、非洲（13国）',  amount:'196,200', fee:'3.2%',  share:'96.8%', shareNum:96.8, status:'pending' },
+  { id:4, channel:'HaiPay',          region:'越南',                     amount:'32,100',  fee:'2.4%',  share:'97.6%', shareNum:97.6, status:'settled' },
+  { id:5, channel:'Lapay',           region:'越南、缅甸',               amount:'21,400',  fee:'2.4%',  share:'97.6%', shareNum:97.6, status:'settled' },
+  { id:6, channel:'Liveme',          region:'北美',                     amount:'48,600',  fee:'83.8%', share:'16.2%', shareNum:16.2, status:'pending' },
+  { id:7, channel:'台湾 Line/Yahoo', region:'台湾',                     amount:'28,900',  fee:'81.0%', share:'19.0%', shareNum:19.0, status:'hold'    },
+  { id:8, channel:'Razer Gold',      region:'东南亚（5国）',             amount:'54,300',  fee:'15.0%', share:'85.0%', shareNum:85.0, status:'settled' },
+  { id:9, channel:'Unibox',          region:'菲律宾',                   amount:'17,200',  fee:'17.6%', share:'82.4%', shareNum:82.4, status:'settled' },
+  {id:10, channel:'Dlocal',          region:'巴西、阿根廷',             amount:'38,700',  fee:'3.4%',  share:'96.6%', shareNum:96.6, status:'pending' },
+];
 
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">财务报表</div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      利润报表
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      管报数据集
-    </div>
-    <div class="nav-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-      汇率配置
-    </div>
-  </div>
-</aside>
+/* ── 预置对话 ─────────────────────────────── */
+const INIT_MSGS = [
+  { role:'ai', text: null, greeting: true },
+  { role:'user', text:'本月分成最低的渠道是哪个？' },
+  { role:'ai', text:'本月分成最低是 **Liveme**，我方仅得 **16.2%**，结算 $48,600，属北美直播平台特殊业务模式。\n\n其次是**台湾 Line/Yahoo**，我方分成 19.0%，当前状态为「待处理」，建议优先跟进。' },
+];
 
-<!-- ── MAIN ────────────────────────────────────────────────── -->
-<main class="main">
-  <div class="topbar">
-    <div class="breadcrumb">
-      <span>结算系统</span>
-      <span class="sep">/</span>
-      <span class="cur">海外内购渠道结算</span>
-    </div>
-    <div class="topbar-right">
-      <span style="font-size:12px;color:#3d4259">2026-03-27 10:43</span>
-      <div class="user-chip">
-        <div class="user-avatar">云</div>
-        <span>吉云飞</span>
-      </div>
-    </div>
-  </div>
+/* ── 组件：StatusBadge ───────────────────── */
+function StatusBadge({ s }) {
+  const c = STATUS[s] || STATUS.pending;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.cls}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>
+      {c.label}
+    </span>
+  );
+}
 
-  <div class="content">
-    <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">本月总结算金额</div>
-        <div class="stat-val">$2,847,392</div>
-        <div class="stat-meta up">↑ 12.3% 较上月</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">活跃渠道数</div>
-        <div class="stat-val">24</div>
-        <div class="stat-meta" style="color:#475569">覆盖 41 个国家</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">平均我方分成</div>
-        <div class="stat-val">88.4%</div>
-        <div class="stat-meta up">↑ 0.8%</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">待对账金额</div>
-        <div class="stat-val">$142,800</div>
-        <div class="stat-meta down">↓ 需尽快处理</div>
-      </div>
-    </div>
+/* ── 组件：ShareCell ─────────────────────── */
+function ShareCell({ v, num }) {
+  const color = num >= 80 ? 'text-green-600' : num >= 50 ? 'text-gray-700' : 'text-red-500';
+  return <span className={`font-semibold ${color}`}>{v}</span>;
+}
 
-    <!-- Filters -->
-    <div class="filter-bar">
-      <div class="filter-group">
-        <span class="filter-label">年份</span>
-        <select><option>2026</option><option>2025</option></select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">月份</span>
-        <select><option>3月</option><option>2月</option><option>1月</option></select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">项目</span>
-        <select><option>全部项目</option><option>跃动</option><option>星辰</option><option>极光</option></select>
-      </div>
-      <div class="filter-group">
-        <span class="filter-label">渠道</span>
-        <select><option>全部渠道</option><option>Codashop</option><option>Payermax</option><option>Pagsmile</option></select>
-      </div>
-      <button class="btn btn-primary">查 询</button>
-      <button class="btn btn-ghost">重 置</button>
-      <div class="filter-bar-right">
-        <button class="btn btn-ghost">导出 Excel</button>
-      </div>
-    </div>
-
-    <!-- Table -->
-    <div class="table-card">
-      <div class="table-head-row">
+/* ── 组件：Sidebar ───────────────────────── */
+function Sidebar({ active, onSelect }) {
+  return (
+    <aside className="w-52 flex-shrink-0 flex flex-col h-screen bg-[#18181b] text-zinc-400 overflow-y-auto">
+      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800">
+        <div className="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-bold">◈</div>
         <div>
-          <div class="table-title">渠道结算明细</div>
-          <div class="table-subtitle">2026年3月 · 共 24 个渠道</div>
+          <div className="text-white text-sm font-semibold leading-tight">财务数据中心</div>
+          <div className="text-zinc-500 text-xs">Finance DataHub</div>
         </div>
       </div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>渠道名称</th>
-              <th>主要覆盖地区</th>
-              <th>结算金额 ($)</th>
-              <th>渠道费率</th>
-              <th>我方分成</th>
-              <th>结算状态</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Codashop</strong></td>
-              <td style="color:#64748b">印尼、泰国、马来西亚</td>
-              <td>324,800</td>
-              <td class="rate-mid">17.5%</td>
-              <td class="rate-high">82.5%</td>
-              <td><span class="badge badge-g">已结算</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>Payermax</strong></td>
-              <td style="color:#64748b">中东、东南亚（7国）</td>
-              <td>218,400</td>
-              <td class="rate-mid">11.2%</td>
-              <td class="rate-high">88.8%</td>
-              <td><span class="badge badge-g">已结算</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>Pagsmile</strong></td>
-              <td style="color:#64748b">拉美、中东、非洲（13国）</td>
-              <td>196,200</td>
-              <td class="rate-mid">3.2%</td>
-              <td class="rate-high">96.8%</td>
-              <td><span class="badge badge-y">对账中</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>HaiPay</strong></td>
-              <td style="color:#64748b">越南</td>
-              <td>32,100</td>
-              <td class="rate-mid">2.4%</td>
-              <td class="rate-high">97.6%</td>
-              <td><span class="badge badge-g">已结算</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>Liveme</strong></td>
-              <td style="color:#64748b">北美</td>
-              <td>48,600</td>
-              <td class="rate-low">83.8%</td>
-              <td class="rate-low">16.2%</td>
-              <td><span class="badge badge-y">对账中</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>台湾 Line/Yahoo</strong></td>
-              <td style="color:#64748b">台湾</td>
-              <td>28,900</td>
-              <td class="rate-low">81.0%</td>
-              <td class="rate-low">19.0%</td>
-              <td><span class="badge badge-r">待处理</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-            <tr>
-              <td><strong>Lapay</strong></td>
-              <td style="color:#64748b">越南、缅甸</td>
-              <td>21,400</td>
-              <td class="rate-mid">2.4%</td>
-              <td class="rate-high">97.6%</td>
-              <td><span class="badge badge-g">已结算</span></td>
-              <td><button class="btn btn-ghost" style="padding:3px 10px">详情</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="tfoot-row">
-        <span class="tfoot-info">显示 7 / 24 条</span>
-        <div class="page-btns">
-          <button class="page-btn">‹</button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn">›</button>
+      <nav className="flex-1 py-3 overflow-y-auto">
+        {MENU.map(({ group, items }) => (
+          <div key={group} className="mb-1">
+            <div className="px-4 py-1.5 text-xs font-medium text-zinc-600 uppercase tracking-wider">{group}</div>
+            {items.map(item => {
+              const on = item.key === active;
+              return (
+                <button key={item.key} onClick={() => onSelect(item.key)}
+                  className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${on ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}`}>
+                  <span className="text-base w-5 text-center">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                  {on && <span className="ml-auto w-1 h-4 bg-blue-500 rounded-full flex-shrink-0"/>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+      <div className="px-4 py-3 border-t border-zinc-800 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-semibold">云</div>
+        <div>
+          <div className="text-zinc-200 text-xs font-medium">吉云飞</div>
+          <div className="text-zinc-500 text-xs">管理员</div>
         </div>
       </div>
-    </div>
-  </div>
-</main>
-
-<!-- ── AI FAB ──────────────────────────────────────────────── -->
-<button class="ai-fab" id="fab" onclick="togglePanel()" title="智能助手">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-    <path d="M12 2a8 8 0 018 8v1a8 8 0 01-8 8H8l-4 3V18a8 8 0 010-16V2z" stroke="none" fill="white" opacity=".15"/>
-    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-    <circle cx="8.5" cy="11" r="1" fill="white" stroke="none"/>
-    <circle cx="12" cy="11" r="1" fill="white" stroke="none"/>
-    <circle cx="15.5" cy="11" r="1" fill="white" stroke="none"/>
-  </svg>
-</button>
-
-<!-- ── AI PANEL ────────────────────────────────────────────── -->
-<div class="ai-panel hide" id="panel">
-
-  <!-- Header -->
-  <div class="panel-header">
-    <div class="panel-identity">
-      <div class="panel-avatar">✦</div>
-      <div>
-        <div class="panel-name">小D · 智能问数</div>
-        <div class="panel-online">在线</div>
-      </div>
-    </div>
-    <button class="close-btn" onclick="togglePanel()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Scope -->
-  <div class="scope-bar">
-    <div class="scope-label">询问范围</div>
-    <div class="scope-row">
-      <button class="scope-opt active" id="sCur" onclick="setScope('cur')">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
-        </svg>
-        当前页面
-      </button>
-      <button class="scope-opt" id="sAll" onclick="setScope('all')">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-        </svg>
-        跨模块查询
-      </button>
-    </div>
-  </div>
-
-  <!-- Messages -->
-  <div class="chat-body" id="msgs">
-    <!-- Greeting -->
-    <div class="msg ai">
-      <div class="m-av ai">✦</div>
-      <div>
-        <div class="scope-tag" id="ctxTag">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
-          </svg>
-          海外内购渠道结算 · 2026年3月
-        </div>
-        <div class="bubble">已感知当前页面数据，可以直接问我：<br><br>
-          • 哪个渠道分成最低？<br>
-          • Liveme 的费率为什么这么高？<br>
-          • 帮我分析本月待处理的订单</div>
-      </div>
-    </div>
-    <!-- Sample exchange -->
-    <div class="msg me">
-      <div class="m-av user">云</div>
-      <div class="bubble">本月分成最低的渠道是哪个？</div>
-    </div>
-    <div class="msg ai">
-      <div class="m-av ai">✦</div>
-      <div class="bubble">
-        本月分成最低是 <strong>Liveme</strong>，我方仅得 <strong style="color:#ef4444">16.2%</strong>，结算 $48,600，属北美直播平台特殊业务模式。<br><br>
-        其次是<strong>台湾 Line/Yahoo</strong>，我方分成 19.0%，当前状态为「待处理」，建议优先跟进。
-      </div>
-    </div>
-  </div>
-
-  <!-- Input -->
-  <div class="input-area">
-    <div class="input-row">
-      <textarea class="chat-input" id="inp" placeholder="输入问题，Enter 发送…" rows="1"
-        onkeydown="onKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send-btn" onclick="send()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
-    </div>
-    <div class="hint">Shift+Enter 换行 · 数据实时脱敏保护</div>
-  </div>
-</div>
-
-<script>
-let open = false;
-
-function togglePanel() {
-  open = !open;
-  document.getElementById('panel').classList.toggle('hide', !open);
+    </aside>
+  );
 }
 
-function setScope(s) {
-  document.getElementById('sCur').classList.toggle('active', s === 'cur');
-  document.getElementById('sAll').classList.toggle('active', s === 'all');
-  const tag = document.getElementById('ctxTag');
-  if (s === 'cur') {
-    tag.innerHTML = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg> 海外内购渠道结算 · 2026年3月`;
-  } else {
-    tag.innerHTML = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg> 跨模块：结算 · 报表 · 主数据`;
+/* ── 组件：BubbleText ────────────────────── */
+function BubbleText({ text }) {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  return (
+    <span>
+      {parts.map((p, i) =>
+        i % 2 === 1
+          ? <strong key={i} className="font-semibold">{p}</strong>
+          : p.split('\n').map((line, j, arr) =>
+              j < arr.length - 1 ? <span key={j}>{line}<br/></span> : <span key={j}>{line}</span>
+            )
+      )}
+    </span>
+  );
+}
+
+/* ── 组件：AIPanel ───────────────────────── */
+function AIPanel({ onClose }) {
+  const [scope, setScope]   = useState('cur');
+  const [msgs, setMsgs]     = useState(INIT_MSGS);
+  const [input, setInput]   = useState('');
+  const [thinking, setThinking] = useState(false);
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [msgs, thinking]);
+
+  function send() {
+    const t = input.trim();
+    if (!t || thinking) return;
+    setMsgs(m => [...m, { role:'user', text:t }]);
+    setInput('');
+    setThinking(true);
+    setTimeout(() => {
+      setThinking(false);
+      setMsgs(m => [...m, { role:'ai', text:'已收到您的问题，正在从财务后台查询数据...\n\n（数据传输已脱敏保护，真实名称本地还原）' }]);
+    }, 1600);
   }
+
+  const ctxLabel = scope === 'cur'
+    ? '🌐 海外内购渠道结算 · 2026年3月'
+    : '📂 跨模块：结算 · 报表 · 主数据';
+
+  return (
+    <div className="panel-anim fixed bottom-[76px] right-6 w-[340px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+         style={{boxShadow:'0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(59,130,246,0.1)'}}>
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">✦</div>
+          <div>
+            <div className="text-sm font-semibold text-gray-800 leading-tight">小D · 智能问数</div>
+            <div className="flex items-center gap-1 text-xs text-green-500 font-medium">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"/>在线
+            </div>
+          </div>
+        </div>
+        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg leading-none">×</button>
+      </div>
+
+      {/* Scope selector */}
+      <div className="px-4 pt-3 pb-2 border-b border-gray-100 flex-shrink-0">
+        <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">询问范围</div>
+        <div className="flex gap-2">
+          {[
+            { key:'cur', icon:'▦', label:'当前页面' },
+            { key:'all', icon:'⊞', label:'跨模块查询' },
+          ].map(opt => (
+            <button key={opt.key} onClick={() => setScope(opt.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                scope === opt.key
+                  ? 'bg-blue-50 border-blue-300 text-blue-600'
+                  : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              }`}>
+              <span>{opt.icon}</span>{opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={bodyRef} className="flex-1 overflow-y-auto px-4 py-3 chat-scroll flex flex-col gap-3">
+        {msgs.map((m, i) => (
+          <div key={i} className={`flex gap-2 items-start ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            {m.role === 'ai' && (
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs flex-shrink-0 mt-0.5">✦</div>
+            )}
+            {m.role === 'user' && (
+              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs flex-shrink-0 mt-0.5">云</div>
+            )}
+            <div className={`max-w-[82%] ${m.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+              {m.greeting && (
+                <div className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 border border-blue-100 rounded px-2 py-0.5 mb-1 w-fit">
+                  <span>▦</span>{ctxLabel}
+                </div>
+              )}
+              {m.greeting && (
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-3 py-2.5 text-sm text-gray-700 leading-relaxed">
+                  已感知当前页面数据，可以直接问我：<br/><br/>
+                  <span className="text-gray-500">• 哪个渠道分成最低？</span><br/>
+                  <span className="text-gray-500">• Liveme 费率为何特殊？</span><br/>
+                  <span className="text-gray-500">• 帮我分析待处理订单</span>
+                </div>
+              )}
+              {m.text && (
+                <div className={`px-3 py-2.5 text-sm leading-relaxed ${
+                  m.role === 'user'
+                    ? 'bg-blue-500 text-white rounded-2xl rounded-tr-sm'
+                    : 'bg-gray-50 border border-gray-200 text-gray-700 rounded-2xl rounded-tl-sm'
+                }`}>
+                  <BubbleText text={m.text}/>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+        {thinking && (
+          <div className="flex gap-2 items-start">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs flex-shrink-0 mt-0.5">✦</div>
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex-shrink-0">
+        <div className="flex gap-2 items-end">
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }}}
+            placeholder="输入问题，Enter 发送…"
+            rows={1}
+            className="flex-1 resize-none bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors"
+            style={{maxHeight:80, lineHeight:'1.4'}}
+          />
+          <button onClick={send}
+            className="w-8 h-8 flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+        <div className="text-center text-xs text-gray-300 mt-1.5">数据传输已脱敏保护</div>
+      </div>
+    </div>
+  );
 }
 
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+/* ── 组件：FAB ───────────────────────────── */
+function FAB({ open, onClick }) {
+  return (
+    <button onClick={onClick}
+      className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all z-50 hover:scale-110"
+      style={{boxShadow:'0 4px 20px rgba(59,130,246,0.4)'}}>
+      {open
+        ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <circle cx="8.5" cy="11" r="1" fill="white" stroke="none"/>
+            <circle cx="12" cy="11" r="1" fill="white" stroke="none"/>
+            <circle cx="15.5" cy="11" r="1" fill="white" stroke="none"/>
+          </svg>
+      }
+    </button>
+  );
 }
 
-function send() {
-  const inp = document.getElementById('inp');
-  const text = inp.value.trim();
-  if (!text) return;
-  const msgs = document.getElementById('msgs');
+/* ── 主应用 ──────────────────────────────── */
+function App() {
+  const [activeNav, setActiveNav] = useState('overseas');
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [search, setSearch]       = useState('');
+  const [year, setYear]           = useState('2026');
+  const [month, setMonth]         = useState('3');
+  const [proj, setProj]           = useState('');
 
-  // user bubble
-  const u = document.createElement('div');
-  u.className = 'msg me';
-  u.innerHTML = `<div class="m-av user">云</div><div class="bubble">${escHtml(text)}</div>`;
-  msgs.appendChild(u);
-  msgs.scrollTop = 9999;
-  inp.value = ''; inp.style.height = 'auto';
+  const rows = DATA.filter(r =>
+    (!search || r.channel.toLowerCase().includes(search.toLowerCase()) || r.region.includes(search))
+  );
 
-  // thinking
-  const b = document.createElement('div');
-  b.className = 'msg ai';
-  b.innerHTML = `<div class="m-av ai">✦</div><div class="bubble thinking">正在查询数据…</div>`;
-  msgs.appendChild(b);
-  msgs.scrollTop = 9999;
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      <Sidebar active={activeNav} onSelect={setActiveNav}/>
 
-  setTimeout(() => {
-    b.querySelector('.bubble').classList.remove('thinking');
-    b.querySelector('.bubble').innerHTML = '已收到您的问题，正在从财务后台拉取数据并分析，结果稍后呈现。<br><small style="color:#3d4259;font-size:11px">（数据传输已脱敏保护）</small>';
-    msgs.scrollTop = 9999;
-  }, 1400);
+      {/* Main */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <div className="h-12 bg-white border-b border-gray-200 flex items-center px-6 gap-2 flex-shrink-0">
+          <span className="text-sm text-gray-400">结算系统</span>
+          <span className="text-gray-300">/</span>
+          <span className="text-sm font-medium text-gray-700">海外内购渠道结算</span>
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-xs text-gray-400">2026-03-27</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto px-6 py-4 flex flex-col gap-4">
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { label:'本月总结算金额',  val:'$2,847,392', meta:'↑ 12.3% 较上月', up:true },
+              { label:'活跃渠道数',     val:'24',          meta:'覆盖 41 个国家', up:false },
+              { label:'平均我方分成',   val:'88.4%',       meta:'↑ 0.8%', up:true },
+              { label:'待对账金额',     val:'$142,800',    meta:'↓ 需尽快处理', up:false, warn:true },
+            ].map((s, i) => (
+              <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+                <div className="text-xs text-gray-400 mb-1.5">{s.label}</div>
+                <div className="text-xl font-bold text-gray-900 tracking-tight">{s.val}</div>
+                <div className={`text-xs mt-1 ${s.warn ? 'text-red-500' : s.up ? 'text-green-500' : 'text-gray-400'}`}>{s.meta}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Filter bar */}
+          <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 h-8 focus-within:border-blue-400 focus-within:bg-white transition-colors">
+              <span className="text-gray-400 text-sm">🔍</span>
+              <input className="bg-transparent text-sm outline-none w-36 placeholder-gray-400"
+                placeholder="搜索渠道…" value={search} onChange={e => setSearch(e.target.value)}/>
+            </div>
+            {[
+              { label:'年份', val:year, set:setYear, opts:[['2026','2026'],['2025','2025']] },
+              { label:'月份', val:month, set:setMonth, opts:[['3','3月'],['2','2月'],['1','1月']] },
+              { label:'项目', val:proj, set:setProj, opts:[['','全部项目'],['1','跃动'],['2','星辰'],['3','极光']] },
+            ].map(f => (
+              <div key={f.label} className="flex items-center gap-1.5">
+                <span className="text-xs text-gray-500">{f.label}</span>
+                <select className="h-8 border border-gray-200 rounded-lg px-2 text-sm bg-white focus:outline-none focus:border-blue-400"
+                  value={f.val} onChange={e => f.set(e.target.value)}>
+                  {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+            ))}
+            <div className="ml-auto flex gap-2">
+              <button className="px-3 h-8 bg-white border border-gray-200 hover:border-blue-400 hover:text-blue-500 text-sm text-gray-600 rounded-lg transition-colors">↓ 导出</button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex-1">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-gray-800">渠道结算明细</div>
+                <div className="text-xs text-gray-400 mt-0.5">2026年3月 · 共 {rows.length} 个渠道</div>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    {['渠道名称','主要覆盖地区','结算金额 ($)','渠道费率','我方分成','结算状态','操作'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {rows.map(r => (
+                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-gray-800">{r.channel}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{r.region}</td>
+                      <td className="px-4 py-3 text-gray-700 font-mono">{r.amount}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.fee}</td>
+                      <td className="px-4 py-3"><ShareCell v={r.share} num={r.shareNum}/></td>
+                      <td className="px-4 py-3"><StatusBadge s={r.status}/></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <button className="px-2.5 py-1 text-xs text-blue-500 hover:bg-blue-50 rounded-md transition-colors">详情</button>
+                          <span className="text-gray-200">|</span>
+                          <button className="px-2.5 py-1 text-xs text-gray-400 hover:bg-gray-100 rounded-md transition-colors">导出</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-400">共 {rows.length} 条</span>
+              <div className="flex gap-1">
+                {['‹','1','2','›'].map((p, i) => (
+                  <button key={i} className={`w-7 h-7 text-xs rounded border transition-colors ${p==='1' ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-500'}`}>{p}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      {/* AI Assistant */}
+      {panelOpen && <AIPanel onClose={() => setPanelOpen(false)}/>}
+      <FAB open={panelOpen} onClick={() => setPanelOpen(v => !v)}/>
+    </div>
+  );
 }
 
-function onKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
-
 </body>
 </html>
