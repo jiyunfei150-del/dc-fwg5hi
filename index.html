@@ -69,50 +69,14 @@ const INIT_MSGS = [
   { role:'ai', text:'本月分成最低是 **Liveme**，我方仅得 **16.2%**，结算 $48,600，属北美直播平台特殊业务模式。\n\n其次是**台湾 Line/Yahoo**，我方分成 19.0%，当前状态为「待处理」，建议优先跟进。' },
 ];
 
-/* ━━━ 二次元角色 SVG ━━━━━━━━━━━━━━━━━━━━━━ */
-function Chara({ size=32 }) {
-  const s = size;
+/* ━━━ AI 图标 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function AIIcon({ size=24, color="white" }) {
   return (
-    <svg width={s} height={s} viewBox="0 0 32 36" fill="none">
-      {/* 后发 */}
-      <ellipse cx="16" cy="15" rx="9.5" ry="11" fill="#c4b5fd"/>
-      <path d="M7 15 Q4.5 22 6 28" stroke="#c4b5fd" strokeWidth="3.5" strokeLinecap="round"/>
-      <path d="M25 15 Q27.5 22 26 28" stroke="#c4b5fd" strokeWidth="3.5" strokeLinecap="round"/>
-      {/* 脸 */}
-      <ellipse cx="16" cy="16.5" rx="7.8" ry="8.5" fill="#fde8d0"/>
-      {/* 刘海 */}
-      <path d="M8.5 12.5 Q9 5.5 16 6 Q23 5.5 23.5 12.5 Q21.5 8.5 16 9 Q10.5 8.5 8.5 12.5Z" fill="#a78bfa"/>
-      <path d="M8.5 12.5 Q10 9 12 11" stroke="#8b5cf6" strokeWidth="0.7" fill="none" strokeLinecap="round"/>
-      <path d="M23.5 12.5 Q22 9 20 11" stroke="#8b5cf6" strokeWidth="0.7" fill="none" strokeLinecap="round"/>
-      {/* 眉毛 */}
-      <path d="M11 13 Q12.8 11.8 14.5 12.8" stroke="#7c3aed" strokeWidth="1" strokeLinecap="round" fill="none"/>
-      <path d="M17.5 12.8 Q19.2 11.8 21 13" stroke="#7c3aed" strokeWidth="1" strokeLinecap="round" fill="none"/>
-      {/* 眼白 */}
-      <ellipse cx="13" cy="16.5" rx="2.6" ry="2.8" fill="white" stroke="#e9d5ff" strokeWidth="0.3"/>
-      <ellipse cx="19" cy="16.5" rx="2.6" ry="2.8" fill="white" stroke="#e9d5ff" strokeWidth="0.3"/>
-      {/* 虹膜 */}
-      <ellipse cx="13" cy="16.8" rx="1.9" ry="2.1" fill="#818cf8"/>
-      <ellipse cx="19" cy="16.8" rx="1.9" ry="2.1" fill="#818cf8"/>
-      {/* 瞳孔 */}
-      <ellipse cx="13.2" cy="16.8" rx="1.0" ry="1.2" fill="#3730a3"/>
-      <ellipse cx="19.2" cy="16.8" rx="1.0" ry="1.2" fill="#3730a3"/>
-      {/* 高光大 */}
-      <ellipse cx="14.1" cy="15.6" rx="0.85" ry="0.85" fill="white"/>
-      <ellipse cx="20.1" cy="15.6" rx="0.85" ry="0.85" fill="white"/>
-      {/* 高光小 */}
-      <ellipse cx="12.5" cy="17.4" rx="0.4" ry="0.4" fill="white" opacity="0.7"/>
-      <ellipse cx="18.5" cy="17.4" rx="0.4" ry="0.4" fill="white" opacity="0.7"/>
-      {/* 腮红 */}
-      <ellipse cx="10" cy="18.5" rx="2.2" ry="1.1" fill="#fda4af" opacity="0.55"/>
-      <ellipse cx="22" cy="18.5" rx="2.2" ry="1.1" fill="#fda4af" opacity="0.55"/>
-      {/* 嘴 */}
-      <path d="M13.5 20.8 Q16 22.8 18.5 20.8" stroke="#e879a0" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
-      {/* 发卡 ★ */}
-      <path d="M22.5 9.5 L23 11 L24.6 11 L23.4 12 L23.9 13.5 L22.5 12.6 L21.1 13.5 L21.6 12 L20.4 11 L22 11Z" fill="#fbbf24"/>
-      {/* 身体 */}
-      <path d="M8 36 Q8 29 16 29 Q24 29 24 36Z" fill="#a78bfa"/>
-      {/* 领结 */}
-      <path d="M13.5 28.5 L16 31 L18.5 28.5 L16 29.5Z" fill="white" opacity="0.85"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1v1a4 4 0 0 1-8 0v-1H7a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3h1V6a4 4 0 0 1 4-4z"/>
+      <circle cx="9" cy="11" r="1" fill={color} stroke="none"/>
+      <circle cx="15" cy="11" r="1" fill={color} stroke="none"/>
+      <path d="M9 14.5 Q12 16.5 15 14.5"/>
     </svg>
   );
 }
@@ -227,7 +191,7 @@ function AIPanel({ onClose }) {
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm"
                style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
-            <Chara size={40}/>
+            <AIIcon size={22}/>
           </div>
           <div>
             <div className="text-sm font-bold text-gray-800 leading-tight">小D · 智能问数</div>
@@ -305,7 +269,7 @@ function AIPanel({ onClose }) {
             {m.role === 'ai' && (
               <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5 shadow-sm"
                    style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
-                <Chara size={28}/>
+                <AIIcon size={18}/>
               </div>
             )}
             {m.role === 'user' && (
@@ -345,7 +309,7 @@ function AIPanel({ onClose }) {
           <div className="flex gap-2 items-start">
             <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5 shadow-sm"
                  style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
-              <Chara size={28}/>
+              <AIIcon size={18}/>
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
               <span className="td1 w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
@@ -391,7 +355,7 @@ function FAB({ open, onClick }) {
         ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
-        : <Chara size={48}/>
+        : <AIIcon size={26}/>
       }
     </button>
   );
