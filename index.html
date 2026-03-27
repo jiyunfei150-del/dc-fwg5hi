@@ -28,19 +28,10 @@ const { useState, useRef, useEffect } = React;
 /* ━━━ 菜单 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const MENU = [
   { group:'主数据', items:[
-    { key:'company', label:'公司主体管理', icon:'🏢' },
-    { key:'project', label:'项目配置',     icon:'📁' },
+    { key:'company', label:'所属公司信息', icon:'🏢' },
   ]},
   { group:'结算系统', items:[
-    { key:'summary',  label:'渠道结算汇总',    icon:'📊' },
     { key:'overseas', label:'海外内购渠道结算', icon:'🌐', active:true },
-    { key:'domestic', label:'国内广告结算',     icon:'📺' },
-    { key:'ocean',    label:'海外广告结算',     icon:'🌊' },
-  ]},
-  { group:'财务报表', items:[
-    { key:'profit', label:'利润报表',  icon:'💹' },
-    { key:'mgmt',   label:'管报数据集', icon:'📋' },
-    { key:'fx',     label:'汇率配置',  icon:'💱' },
   ]},
 ];
 
@@ -68,12 +59,7 @@ const DATA = [
 /* ━━━ 可选模块 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const ALL_MODS = [
   { key:'overseas', label:'海外内购渠道结算', group:'结算系统', cur:true },
-  { key:'summary',  label:'渠道结算汇总',    group:'结算系统' },
-  { key:'domestic', label:'国内广告结算',    group:'结算系统' },
-  { key:'ocean',    label:'海外广告结算',    group:'结算系统' },
-  { key:'profit',   label:'利润报表',        group:'财务报表' },
-  { key:'mgmt',     label:'管报数据集',      group:'财务报表' },
-  { key:'company',  label:'公司主体管理',    group:'主数据'   },
+  { key:'company',  label:'所属公司信息',     group:'主数据'   },
 ];
 
 /* ━━━ 预置对话 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -161,8 +147,8 @@ function Sidebar({ active, onSelect }) {
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800">
         <div className="w-7 h-7 bg-indigo-500 rounded-md flex items-center justify-center text-white text-sm font-bold">◈</div>
         <div>
-          <div className="text-white text-sm font-semibold leading-tight">财务数据中心</div>
-          <div className="text-zinc-500 text-xs">Finance DataHub</div>
+          <div className="text-white text-sm font-semibold leading-tight">财务后台</div>
+          <div className="text-zinc-500 text-xs">Finance Backend</div>
         </div>
       </div>
       <nav className="flex-1 py-3">
