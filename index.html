@@ -14,10 +14,10 @@
     .chat-scroll::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px}
     @keyframes popIn{from{opacity:0;transform:scale(.88) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
     .panel-anim{animation:popIn .22s cubic-bezier(.34,1.56,.64,1) both}
-    @keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
-    .thinking-dot{animation:pulse2 1.2s ease-in-out infinite}
-    .thinking-dot:nth-child(2){animation-delay:.2s}
-    .thinking-dot:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+    .td1{animation:blink 1.2s ease-in-out infinite}
+    .td2{animation:blink 1.2s ease-in-out .2s infinite}
+    .td3{animation:blink 1.2s ease-in-out .4s infinite}
   </style>
 </head>
 <body style="margin:0" class="bg-gray-50 text-gray-800">
@@ -25,82 +25,147 @@
 <script type="text/babel">
 const { useState, useRef, useEffect } = React;
 
-/* ── 菜单 ─────────────────────────────────── */
+/* ━━━ 菜单 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const MENU = [
   { group:'主数据', items:[
     { key:'company', label:'公司主体管理', icon:'🏢' },
     { key:'project', label:'项目配置',     icon:'📁' },
   ]},
   { group:'结算系统', items:[
-    { key:'summary',  label:'渠道结算汇总',   icon:'📊' },
+    { key:'summary',  label:'渠道结算汇总',    icon:'📊' },
     { key:'overseas', label:'海外内购渠道结算', icon:'🌐', active:true },
-    { key:'domestic', label:'国内广告结算',    icon:'📺' },
-    { key:'ocean',    label:'海外广告结算',    icon:'🌊' },
+    { key:'domestic', label:'国内广告结算',     icon:'📺' },
+    { key:'ocean',    label:'海外广告结算',     icon:'🌊' },
   ]},
   { group:'财务报表', items:[
-    { key:'profit',   label:'利润报表',  icon:'💹' },
-    { key:'mgmt',     label:'管报数据集', icon:'📋' },
-    { key:'fx',       label:'汇率配置',  icon:'💱' },
+    { key:'profit', label:'利润报表',  icon:'💹' },
+    { key:'mgmt',   label:'管报数据集', icon:'📋' },
+    { key:'fx',     label:'汇率配置',  icon:'💱' },
   ]},
 ];
 
-/* ── 状态映射 ─────────────────────────────── */
+/* ━━━ 状态徽标 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const STATUS = {
-  settled: { label:'已结算', dot:'bg-green-500',  cls:'bg-green-50 text-green-700 border border-green-200' },
-  pending: { label:'对账中', dot:'bg-yellow-500', cls:'bg-yellow-50 text-yellow-700 border border-yellow-200' },
-  hold:    { label:'待处理', dot:'bg-red-500',    cls:'bg-red-50 text-red-700 border border-red-200' },
+  settled:{ label:'已结算', dot:'bg-green-500',  cls:'bg-green-50 text-green-700 border border-green-200' },
+  pending:{ label:'对账中', dot:'bg-yellow-500', cls:'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+  hold:   { label:'待处理', dot:'bg-red-500',    cls:'bg-red-50 text-red-700 border border-red-200' },
 };
 
-/* ── Mock 数据 ────────────────────────────── */
+/* ━━━ 表格数据 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const DATA = [
-  { id:1, channel:'Codashop',        region:'印尼、泰国、马来西亚',     amount:'324,800', fee:'17.5%', share:'82.5%', shareNum:82.5, status:'settled' },
-  { id:2, channel:'Payermax',        region:'中东、东南亚（7国）',       amount:'218,400', fee:'11.2%', share:'88.8%', shareNum:88.8, status:'settled' },
-  { id:3, channel:'Pagsmile',        region:'拉美、中东、非洲（13国）',  amount:'196,200', fee:'3.2%',  share:'96.8%', shareNum:96.8, status:'pending' },
-  { id:4, channel:'HaiPay',          region:'越南',                     amount:'32,100',  fee:'2.4%',  share:'97.6%', shareNum:97.6, status:'settled' },
-  { id:5, channel:'Lapay',           region:'越南、缅甸',               amount:'21,400',  fee:'2.4%',  share:'97.6%', shareNum:97.6, status:'settled' },
-  { id:6, channel:'Liveme',          region:'北美',                     amount:'48,600',  fee:'83.8%', share:'16.2%', shareNum:16.2, status:'pending' },
-  { id:7, channel:'台湾 Line/Yahoo', region:'台湾',                     amount:'28,900',  fee:'81.0%', share:'19.0%', shareNum:19.0, status:'hold'    },
-  { id:8, channel:'Razer Gold',      region:'东南亚（5国）',             amount:'54,300',  fee:'15.0%', share:'85.0%', shareNum:85.0, status:'settled' },
-  { id:9, channel:'Unibox',          region:'菲律宾',                   amount:'17,200',  fee:'17.6%', share:'82.4%', shareNum:82.4, status:'settled' },
-  {id:10, channel:'Dlocal',          region:'巴西、阿根廷',             amount:'38,700',  fee:'3.4%',  share:'96.6%', shareNum:96.6, status:'pending' },
+  { id:1, channel:'Codashop',        region:'印尼、泰国、马来西亚',    amount:'324,800', fee:'17.5%', share:'82.5%', shareN:82.5, status:'settled' },
+  { id:2, channel:'Payermax',        region:'中东、东南亚（7国）',      amount:'218,400', fee:'11.2%', share:'88.8%', shareN:88.8, status:'settled' },
+  { id:3, channel:'Pagsmile',        region:'拉美、中东、非洲（13国）', amount:'196,200', fee:'3.2%',  share:'96.8%', shareN:96.8, status:'pending' },
+  { id:4, channel:'HaiPay',          region:'越南',                    amount:'32,100',  fee:'2.4%',  share:'97.6%', shareN:97.6, status:'settled' },
+  { id:5, channel:'Lapay',           region:'越南、缅甸',              amount:'21,400',  fee:'2.4%',  share:'97.6%', shareN:97.6, status:'settled' },
+  { id:6, channel:'Liveme',          region:'北美',                    amount:'48,600',  fee:'83.8%', share:'16.2%', shareN:16.2, status:'pending' },
+  { id:7, channel:'台湾 Line/Yahoo', region:'台湾',                    amount:'28,900',  fee:'81.0%', share:'19.0%', shareN:19.0, status:'hold'    },
+  { id:8, channel:'Razer Gold',      region:'东南亚（5国）',            amount:'54,300',  fee:'15.0%', share:'85.0%', shareN:85.0, status:'settled' },
+  { id:9, channel:'Unibox',          region:'菲律宾',                  amount:'17,200',  fee:'17.6%', share:'82.4%', shareN:82.4, status:'settled' },
+  {id:10, channel:'Dlocal',          region:'巴西、阿根廷',            amount:'38,700',  fee:'3.4%',  share:'96.6%', shareN:96.6, status:'pending' },
 ];
 
-/* ── 预置对话 ─────────────────────────────── */
+/* ━━━ 可选模块 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const ALL_MODS = [
+  { key:'overseas', label:'海外内购渠道结算', group:'结算系统', cur:true },
+  { key:'summary',  label:'渠道结算汇总',    group:'结算系统' },
+  { key:'domestic', label:'国内广告结算',    group:'结算系统' },
+  { key:'ocean',    label:'海外广告结算',    group:'结算系统' },
+  { key:'profit',   label:'利润报表',        group:'财务报表' },
+  { key:'mgmt',     label:'管报数据集',      group:'财务报表' },
+  { key:'company',  label:'公司主体管理',    group:'主数据'   },
+];
+
+/* ━━━ 预置对话 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const INIT_MSGS = [
-  { role:'ai', text: null, greeting: true },
+  { role:'ai', greeting:true },
   { role:'user', text:'本月分成最低的渠道是哪个？' },
   { role:'ai', text:'本月分成最低是 **Liveme**，我方仅得 **16.2%**，结算 $48,600，属北美直播平台特殊业务模式。\n\n其次是**台湾 Line/Yahoo**，我方分成 19.0%，当前状态为「待处理」，建议优先跟进。' },
 ];
 
-/* ── 组件：StatusBadge ───────────────────── */
-function StatusBadge({ s }) {
+/* ━━━ 二次元角色 SVG ━━━━━━━━━━━━━━━━━━━━━━ */
+function Chara({ size=32 }) {
+  const s = size;
+  return (
+    <svg width={s} height={s} viewBox="0 0 32 36" fill="none">
+      {/* 后发 */}
+      <ellipse cx="16" cy="15" rx="9.5" ry="11" fill="#c4b5fd"/>
+      <path d="M7 15 Q4.5 22 6 28" stroke="#c4b5fd" strokeWidth="3.5" strokeLinecap="round"/>
+      <path d="M25 15 Q27.5 22 26 28" stroke="#c4b5fd" strokeWidth="3.5" strokeLinecap="round"/>
+      {/* 脸 */}
+      <ellipse cx="16" cy="16.5" rx="7.8" ry="8.5" fill="#fde8d0"/>
+      {/* 刘海 */}
+      <path d="M8.5 12.5 Q9 5.5 16 6 Q23 5.5 23.5 12.5 Q21.5 8.5 16 9 Q10.5 8.5 8.5 12.5Z" fill="#a78bfa"/>
+      <path d="M8.5 12.5 Q10 9 12 11" stroke="#8b5cf6" strokeWidth="0.7" fill="none" strokeLinecap="round"/>
+      <path d="M23.5 12.5 Q22 9 20 11" stroke="#8b5cf6" strokeWidth="0.7" fill="none" strokeLinecap="round"/>
+      {/* 眉毛 */}
+      <path d="M11 13 Q12.8 11.8 14.5 12.8" stroke="#7c3aed" strokeWidth="1" strokeLinecap="round" fill="none"/>
+      <path d="M17.5 12.8 Q19.2 11.8 21 13" stroke="#7c3aed" strokeWidth="1" strokeLinecap="round" fill="none"/>
+      {/* 眼白 */}
+      <ellipse cx="13" cy="16.5" rx="2.6" ry="2.8" fill="white" stroke="#e9d5ff" strokeWidth="0.3"/>
+      <ellipse cx="19" cy="16.5" rx="2.6" ry="2.8" fill="white" stroke="#e9d5ff" strokeWidth="0.3"/>
+      {/* 虹膜 */}
+      <ellipse cx="13" cy="16.8" rx="1.9" ry="2.1" fill="#818cf8"/>
+      <ellipse cx="19" cy="16.8" rx="1.9" ry="2.1" fill="#818cf8"/>
+      {/* 瞳孔 */}
+      <ellipse cx="13.2" cy="16.8" rx="1.0" ry="1.2" fill="#3730a3"/>
+      <ellipse cx="19.2" cy="16.8" rx="1.0" ry="1.2" fill="#3730a3"/>
+      {/* 高光大 */}
+      <ellipse cx="14.1" cy="15.6" rx="0.85" ry="0.85" fill="white"/>
+      <ellipse cx="20.1" cy="15.6" rx="0.85" ry="0.85" fill="white"/>
+      {/* 高光小 */}
+      <ellipse cx="12.5" cy="17.4" rx="0.4" ry="0.4" fill="white" opacity="0.7"/>
+      <ellipse cx="18.5" cy="17.4" rx="0.4" ry="0.4" fill="white" opacity="0.7"/>
+      {/* 腮红 */}
+      <ellipse cx="10" cy="18.5" rx="2.2" ry="1.1" fill="#fda4af" opacity="0.55"/>
+      <ellipse cx="22" cy="18.5" rx="2.2" ry="1.1" fill="#fda4af" opacity="0.55"/>
+      {/* 嘴 */}
+      <path d="M13.5 20.8 Q16 22.8 18.5 20.8" stroke="#e879a0" strokeWidth="1.1" strokeLinecap="round" fill="none"/>
+      {/* 发卡 ★ */}
+      <path d="M22.5 9.5 L23 11 L24.6 11 L23.4 12 L23.9 13.5 L22.5 12.6 L21.1 13.5 L21.6 12 L20.4 11 L22 11Z" fill="#fbbf24"/>
+      {/* 身体 */}
+      <path d="M8 36 Q8 29 16 29 Q24 29 24 36Z" fill="#a78bfa"/>
+      {/* 领结 */}
+      <path d="M13.5 28.5 L16 31 L18.5 28.5 L16 29.5Z" fill="white" opacity="0.85"/>
+    </svg>
+  );
+}
+
+/* ━━━ StatusBadge ━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function Badge({ s }) {
   const c = STATUS[s] || STATUS.pending;
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${c.cls}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>
-      {c.label}
+      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>{c.label}
     </span>
   );
 }
 
-/* ── 组件：ShareCell ─────────────────────── */
-function ShareCell({ v, num }) {
-  const color = num >= 80 ? 'text-green-600' : num >= 50 ? 'text-gray-700' : 'text-red-500';
-  return <span className={`font-semibold ${color}`}>{v}</span>;
+/* ━━━ BubbleText ━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function BT({ text }) {
+  return (
+    <span>
+      {text.split(/\*\*(.+?)\*\*/g).map((p, i) =>
+        i % 2 ? <strong key={i}>{p}</strong>
+              : p.split('\n').map((ln, j, a) =>
+                  j < a.length-1 ? <span key={j}>{ln}<br/></span> : <span key={j}>{ln}</span>)
+      )}
+    </span>
+  );
 }
 
-/* ── 组件：Sidebar ───────────────────────── */
+/* ━━━ Sidebar ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function Sidebar({ active, onSelect }) {
   return (
     <aside className="w-52 flex-shrink-0 flex flex-col h-screen bg-[#18181b] text-zinc-400 overflow-y-auto">
       <div className="flex items-center gap-2.5 px-4 py-4 border-b border-zinc-800">
-        <div className="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-bold">◈</div>
+        <div className="w-7 h-7 bg-indigo-500 rounded-md flex items-center justify-center text-white text-sm font-bold">◈</div>
         <div>
           <div className="text-white text-sm font-semibold leading-tight">财务数据中心</div>
           <div className="text-zinc-500 text-xs">Finance DataHub</div>
         </div>
       </div>
-      <nav className="flex-1 py-3 overflow-y-auto">
+      <nav className="flex-1 py-3">
         {MENU.map(({ group, items }) => (
           <div key={group} className="mb-1">
             <div className="px-4 py-1.5 text-xs font-medium text-zinc-600 uppercase tracking-wider">{group}</div>
@@ -111,7 +176,7 @@ function Sidebar({ active, onSelect }) {
                   className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${on ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}`}>
                   <span className="text-base w-5 text-center">{item.icon}</span>
                   <span className="truncate">{item.label}</span>
-                  {on && <span className="ml-auto w-1 h-4 bg-blue-500 rounded-full flex-shrink-0"/>}
+                  {on && <span className="ml-auto w-1 h-4 bg-indigo-500 rounded-full flex-shrink-0"/>}
                 </button>
               );
             })}
@@ -119,7 +184,7 @@ function Sidebar({ active, onSelect }) {
         ))}
       </nav>
       <div className="px-4 py-3 border-t border-zinc-800 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-semibold">云</div>
+        <div className="w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-semibold">云</div>
         <div>
           <div className="text-zinc-200 text-xs font-medium">吉云飞</div>
           <div className="text-zinc-500 text-xs">管理员</div>
@@ -129,33 +194,22 @@ function Sidebar({ active, onSelect }) {
   );
 }
 
-/* ── 组件：BubbleText ────────────────────── */
-function BubbleText({ text }) {
-  const parts = text.split(/\*\*(.+?)\*\*/g);
-  return (
-    <span>
-      {parts.map((p, i) =>
-        i % 2 === 1
-          ? <strong key={i} className="font-semibold">{p}</strong>
-          : p.split('\n').map((line, j, arr) =>
-              j < arr.length - 1 ? <span key={j}>{line}<br/></span> : <span key={j}>{line}</span>
-            )
-      )}
-    </span>
-  );
-}
-
-/* ── 组件：AIPanel ───────────────────────── */
+/* ━━━ AIPanel ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function AIPanel({ onClose }) {
-  const [scope, setScope]   = useState('cur');
-  const [msgs, setMsgs]     = useState(INIT_MSGS);
-  const [input, setInput]   = useState('');
+  const [scope, setScope]       = useState('cur');
+  const [selMods, setSelMods]   = useState(['overseas']);
+  const [msgs, setMsgs]         = useState(INIT_MSGS);
+  const [input, setInput]       = useState('');
   const [thinking, setThinking] = useState(false);
   const bodyRef = useRef(null);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [msgs, thinking]);
+  }, [msgs, thinking, scope]);
+
+  function toggleMod(key) {
+    setSelMods(s => s.includes(key) ? (s.length > 1 ? s.filter(k => k !== key) : s) : [...s, key]);
+  }
 
   function send() {
     const t = input.trim();
@@ -169,221 +223,213 @@ function AIPanel({ onClose }) {
     }, 1600);
   }
 
-  const ctxLabel = scope === 'cur'
-    ? '🌐 海外内购渠道结算 · 2026年3月'
-    : '📂 跨模块：结算 · 报表 · 主数据';
+  /* 分组 */
+  const grouped = ALL_MODS.reduce((acc, m) => {
+    (acc[m.group] = acc[m.group] || []).push(m);
+    return acc;
+  }, {});
+
+  const selNames = selMods.map(k => ALL_MODS.find(m => m.key === k)?.label).filter(Boolean);
 
   return (
-    <div className="panel-anim fixed bottom-[76px] right-6 w-[340px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
-         style={{boxShadow:'0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(59,130,246,0.1)'}}>
+    <div className="panel-anim fixed bottom-[82px] right-6 w-[344px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden"
+         style={{maxHeight:'calc(100vh - 110px)', boxShadow:'0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px rgba(139,92,246,0.15)'}}>
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm overflow-hidden">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <ellipse cx="14" cy="8.5" rx="6.5" ry="3" fill="white" opacity="0.9"/>
-              <rect x="7.5" y="8" width="13" height="2" fill="white" opacity="0.9"/>
-              <circle cx="14" cy="13" r="6" fill="white"/>
-              <ellipse cx="11.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-              <ellipse cx="16.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-              <circle cx="12.1" cy="12" r="0.5" fill="white"/>
-              <circle cx="17.1" cy="12" r="0.5" fill="white"/>
-              <path d="M11.2 15.2 Q14 17.2 16.8 15.2" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-              <ellipse cx="10.2" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-              <ellipse cx="17.8" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-              <path d="M8 27 Q8 21 14 21 Q20 21 20 27" fill="white" opacity="0.85"/>
-            </svg>
+      {/* ── 头部 ── */}
+      <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+           style={{background:'linear-gradient(120deg,#f5f3ff 0%,#eef2ff 100%)', borderBottom:'1px solid #ede9fe'}}>
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm"
+               style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
+            <Chara size={40}/>
           </div>
           <div>
-            <div className="text-sm font-semibold text-gray-800 leading-tight">小D · 智能问数</div>
-            <div className="flex items-center gap-1 text-xs text-green-500 font-medium">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"/>在线
+            <div className="text-sm font-bold text-gray-800 leading-tight">小D · 智能问数</div>
+            <div className="flex items-center gap-1.5 text-xs text-green-500 font-medium mt-0.5">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"/>
+              在线 · 数据已脱敏保护
             </div>
           </div>
         </div>
-        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg leading-none">×</button>
+        <button onClick={onClose}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-white/70 transition-colors text-xl leading-none">×</button>
       </div>
 
-      {/* Scope selector */}
-      <div className="px-4 pt-3 pb-2 border-b border-gray-100 flex-shrink-0">
-        <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">询问范围</div>
-        <div className="flex gap-2">
+      {/* ── 范围选择 ── */}
+      <div className="px-4 pt-3 pb-2 flex-shrink-0" style={{borderBottom:'1px solid #f3f4f6'}}>
+        <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">询问范围</div>
+        <div className="flex gap-2 mb-2">
           {[
-            { key:'cur', icon:'▦', label:'当前页面' },
-            { key:'all', icon:'⊞', label:'跨模块查询' },
-          ].map(opt => (
-            <button key={opt.key} onClick={() => setScope(opt.key)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                scope === opt.key
-                  ? 'bg-blue-50 border-blue-300 text-blue-600'
+            { key:'cur', label:'当前页面', icon:'▦' },
+            { key:'all', label:'跨模块查询', icon:'⊞' },
+          ].map(o => (
+            <button key={o.key} onClick={() => setScope(o.key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                scope === o.key
+                  ? 'bg-violet-50 border-violet-300 text-violet-600'
                   : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700'
               }`}>
-              <span>{opt.icon}</span>{opt.label}
+              <span>{o.icon}</span>{o.label}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Messages */}
-      <div ref={bodyRef} className="flex-1 overflow-y-auto px-4 py-3 chat-scroll flex flex-col gap-3">
-        {msgs.map((m, i) => (
-          <div key={i} className={`flex gap-2 items-start ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-            {m.role === 'ai' && (
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden">
-                <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-                  <ellipse cx="14" cy="8.5" rx="6.5" ry="3" fill="white" opacity="0.9"/>
-                  <rect x="7.5" y="8" width="13" height="2" fill="white" opacity="0.9"/>
-                  <circle cx="14" cy="13" r="6" fill="white"/>
-                  <ellipse cx="11.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-                  <ellipse cx="16.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-                  <circle cx="12.1" cy="12" r="0.5" fill="white"/>
-                  <circle cx="17.1" cy="12" r="0.5" fill="white"/>
-                  <path d="M11.2 15.2 Q14 17.2 16.8 15.2" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-                  <ellipse cx="10.2" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-                  <ellipse cx="17.8" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-                  <path d="M8 27 Q8 21 14 21 Q20 21 20 27" fill="white" opacity="0.85"/>
-                </svg>
+        {/* 跨模块：模块选择器 */}
+        {scope === 'all' && (
+          <div className="rounded-xl border border-violet-100 bg-violet-50/40 p-3">
+            <div className="text-xs text-gray-400 font-medium mb-2.5">选择要查询的模块（多选）</div>
+            {Object.entries(grouped).map(([grp, items]) => (
+              <div key={grp} className="mb-3 last:mb-0">
+                <div className="text-xs font-semibold text-gray-400 mb-1.5">{grp}</div>
+                <div className="flex flex-col gap-1.5">
+                  {items.map(m => {
+                    const on = selMods.includes(m.key);
+                    return (
+                      <button key={m.key} onClick={() => toggleMod(m.key)}
+                        className={`flex items-center gap-2.5 w-full text-left px-2.5 py-1.5 rounded-lg transition-all ${
+                          on ? 'bg-white border border-violet-200 shadow-sm' : 'hover:bg-white/60'
+                        }`}>
+                        <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border transition-all ${
+                          on ? 'bg-violet-500 border-violet-500' : 'bg-white border-gray-300'
+                        }`}>
+                          {on && <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
+                            <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>}
+                        </div>
+                        <span className={`text-xs flex-1 ${on ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{m.label}</span>
+                        {m.cur && <span className="text-xs text-violet-400 bg-violet-100 px-1.5 py-0.5 rounded-full">当前</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            )}
-            {m.role === 'user' && (
-              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs flex-shrink-0 mt-0.5">云</div>
-            )}
-            <div className={`max-w-[82%] ${m.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-              {m.greeting && (
-                <div className="flex items-center gap-1 text-xs text-blue-500 bg-blue-50 border border-blue-100 rounded px-2 py-0.5 mb-1 w-fit">
-                  <span>▦</span>{ctxLabel}
-                </div>
-              )}
-              {m.greeting && (
-                <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-3 py-2.5 text-sm text-gray-700 leading-relaxed">
-                  已感知当前页面数据，可以直接问我：<br/><br/>
-                  <span className="text-gray-500">• 哪个渠道分成最低？</span><br/>
-                  <span className="text-gray-500">• Liveme 费率为何特殊？</span><br/>
-                  <span className="text-gray-500">• 帮我分析待处理订单</span>
-                </div>
-              )}
-              {m.text && (
-                <div className={`px-3 py-2.5 text-sm leading-relaxed ${
-                  m.role === 'user'
-                    ? 'bg-blue-500 text-white rounded-2xl rounded-tr-sm'
-                    : 'bg-gray-50 border border-gray-200 text-gray-700 rounded-2xl rounded-tl-sm'
-                }`}>
-                  <BubbleText text={m.text}/>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {thinking && (
-          <div className="flex gap-2 items-start">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden">
-                <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-                  <ellipse cx="14" cy="8.5" rx="6.5" ry="3" fill="white" opacity="0.9"/>
-                  <rect x="7.5" y="8" width="13" height="2" fill="white" opacity="0.9"/>
-                  <circle cx="14" cy="13" r="6" fill="white"/>
-                  <ellipse cx="11.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-                  <ellipse cx="16.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-                  <circle cx="12.1" cy="12" r="0.5" fill="white"/>
-                  <circle cx="17.1" cy="12" r="0.5" fill="white"/>
-                  <path d="M11.2 15.2 Q14 17.2 16.8 15.2" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-                  <ellipse cx="10.2" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-                  <ellipse cx="17.8" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-                  <path d="M8 27 Q8 21 14 21 Q20 21 20 27" fill="white" opacity="0.85"/>
-                </svg>
-              </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
-              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
-              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
-              <span className="thinking-dot w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+            ))}
+            <div className="pt-2 border-t border-violet-100 text-xs font-medium text-violet-500">
+              已选 {selMods.length} 个模块：{selNames.join('、')}
             </div>
           </div>
         )}
       </div>
 
-      {/* Input */}
+      {/* ── 消息区 ── */}
+      <div ref={bodyRef} className="flex-1 overflow-y-auto px-4 py-3 chat-scroll flex flex-col gap-3" style={{minHeight:0}}>
+        {msgs.map((m, i) => (
+          <div key={i} className={`flex gap-2 items-start ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+
+            {m.role === 'ai' && (
+              <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5 shadow-sm"
+                   style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
+                <Chara size={28}/>
+              </div>
+            )}
+            {m.role === 'user' && (
+              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs flex-shrink-0 mt-0.5 font-bold">云</div>
+            )}
+
+            <div className={`max-w-[82%] flex flex-col gap-1 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+              {m.greeting && (
+                <div className="inline-flex items-center gap-1 text-xs text-violet-500 bg-violet-50 border border-violet-100 rounded-full px-2.5 py-0.5 mb-0.5">
+                  {scope === 'cur'
+                    ? '▦ 海外内购渠道结算 · 2026年3月'
+                    : `⊞ 已选 ${selMods.length} 个模块`}
+                </div>
+              )}
+              {m.greeting && (
+                <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-3 py-2.5 text-sm text-gray-700 leading-relaxed">
+                  你好！已感知当前页面数据，可以直接问我：<br/><br/>
+                  <span className="text-gray-400">• 哪个渠道分成最低？</span><br/>
+                  <span className="text-gray-400">• Liveme 费率为何特殊？</span><br/>
+                  <span className="text-gray-400">• 帮我分析待处理订单</span>
+                </div>
+              )}
+              {m.text && (
+                <div className={`px-3 py-2.5 text-sm leading-relaxed ${
+                  m.role === 'user'
+                    ? 'bg-indigo-500 text-white rounded-2xl rounded-tr-sm'
+                    : 'bg-gray-50 border border-gray-200 text-gray-700 rounded-2xl rounded-tl-sm'
+                }`}>
+                  <BT text={m.text}/>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {thinking && (
+          <div className="flex gap-2 items-start">
+            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5 shadow-sm"
+                 style={{background:'linear-gradient(135deg,#c4b5fd,#818cf8)'}}>
+              <Chara size={28}/>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+              <span className="td1 w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+              <span className="td2 w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+              <span className="td3 w-1.5 h-1.5 bg-gray-400 rounded-full inline-block"/>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── 输入框 ── */}
       <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex-shrink-0">
         <div className="flex gap-2 items-end">
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }}}
-            placeholder="输入问题，Enter 发送…"
-            rows={1}
-            className="flex-1 resize-none bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors"
-            style={{maxHeight:80, lineHeight:'1.4'}}
-          />
+          <textarea value={input} onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send(); }}}
+            placeholder="输入问题，Enter 发送…" rows={1}
+            className="flex-1 resize-none bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-violet-400 focus:bg-white transition-colors"
+            style={{maxHeight:80, lineHeight:'1.4'}}/>
           <button onClick={send}
-            className="w-8 h-8 flex-shrink-0 bg-blue-500 hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            className="w-8 h-8 flex-shrink-0 rounded-xl flex items-center justify-center transition-all shadow-sm hover:brightness-110"
+            style={{background:'linear-gradient(135deg,#a78bfa,#6366f1)'}}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
             </svg>
           </button>
         </div>
-        <div className="text-center text-xs text-gray-300 mt-1.5">数据传输已脱敏保护</div>
+        <div className="text-center text-xs text-gray-300 mt-1.5">🔒 数据传输已脱敏保护</div>
       </div>
     </div>
   );
 }
 
-/* ── 组件：FAB ───────────────────────────── */
+/* ━━━ FAB ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function FAB({ open, onClick }) {
   return (
     <button onClick={onClick}
-      className="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all z-50 hover:scale-110"
-      style={{boxShadow:'0 4px 20px rgba(59,130,246,0.4)'}}>
+      className="fixed bottom-6 right-6 w-14 h-14 rounded-full overflow-hidden flex items-center justify-center transition-all z-50 hover:scale-105"
+      style={{
+        background: open ? 'linear-gradient(135deg,#a78bfa,#6366f1)' : 'linear-gradient(135deg,#c4b5fd,#818cf8)',
+        boxShadow:'0 4px 24px rgba(139,92,246,0.5)',
+      }}>
       {open
-        ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        : <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            {/* 头发 */}
-            <ellipse cx="14" cy="8.5" rx="6.5" ry="3" fill="white" opacity="0.9"/>
-            <rect x="7.5" y="8" width="13" height="2" fill="white" opacity="0.9"/>
-            {/* 脸 */}
-            <circle cx="14" cy="13" r="6" fill="white"/>
-            {/* 眼睛 */}
-            <ellipse cx="11.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-            <ellipse cx="16.5" cy="12.5" rx="1.3" ry="1.5" fill="#3b82f6"/>
-            {/* 眼神高光 */}
-            <circle cx="12.1" cy="12" r="0.5" fill="white"/>
-            <circle cx="17.1" cy="12" r="0.5" fill="white"/>
-            {/* 微笑 */}
-            <path d="M11.2 15.2 Q14 17.2 16.8 15.2" stroke="#3b82f6" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
-            {/* 腮红 */}
-            <ellipse cx="10.2" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-            <ellipse cx="17.8" cy="14.5" rx="1.4" ry="0.8" fill="#fca5a5" opacity="0.5"/>
-            {/* 身体 */}
-            <path d="M8 27 Q8 21 14 21 Q20 21 20 27" fill="white" opacity="0.85"/>
-            {/* 领子 */}
-            <path d="M11.5 20 L14 23 L16.5 20" stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7"/>
+        ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
+        : <Chara size={48}/>
       }
     </button>
   );
 }
 
-/* ── 主应用 ──────────────────────────────── */
+/* ━━━ App ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function App() {
-  const [activeNav, setActiveNav] = useState('overseas');
-  const [panelOpen, setPanelOpen] = useState(false);
-  const [search, setSearch]       = useState('');
-  const [year, setYear]           = useState('2026');
-  const [month, setMonth]         = useState('3');
-  const [proj, setProj]           = useState('');
+  const [nav, setNav]         = useState('overseas');
+  const [panelOpen, setPanel] = useState(false);
+  const [search, setSearch]   = useState('');
 
   const rows = DATA.filter(r =>
-    (!search || r.channel.toLowerCase().includes(search.toLowerCase()) || r.region.includes(search))
+    !search || r.channel.toLowerCase().includes(search.toLowerCase()) || r.region.includes(search)
   );
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar active={activeNav} onSelect={setActiveNav}/>
+      <Sidebar active={nav} onSelect={setNav}/>
 
-      {/* Main */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Topbar */}
-        <div className="h-12 bg-white border-b border-gray-200 flex items-center px-6 gap-2 flex-shrink-0">
+        {/* topbar */}
+        <div className="h-12 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0">
           <span className="text-sm text-gray-400">结算系统</span>
-          <span className="text-gray-300">/</span>
+          <span className="text-gray-300 mx-1.5">/</span>
           <span className="text-sm font-medium text-gray-700">海外内购渠道结算</span>
           <div className="ml-auto flex items-center gap-3">
             <span className="text-xs text-gray-400">2026-03-27</span>
@@ -391,49 +437,47 @@ function App() {
         </div>
 
         <div className="flex-1 overflow-auto px-6 py-4 flex flex-col gap-4">
-
-          {/* Stats */}
+          {/* stats */}
           <div className="grid grid-cols-4 gap-3">
             {[
-              { label:'本月总结算金额',  val:'$2,847,392', meta:'↑ 12.3% 较上月', up:true },
-              { label:'活跃渠道数',     val:'24',          meta:'覆盖 41 个国家', up:false },
-              { label:'平均我方分成',   val:'88.4%',       meta:'↑ 0.8%', up:true },
-              { label:'待对账金额',     val:'$142,800',    meta:'↓ 需尽快处理', up:false, warn:true },
-            ].map((s, i) => (
+              { label:'本月总结算金额', val:'$2,847,392', meta:'↑ 12.3% 较上月', up:true },
+              { label:'活跃渠道数',    val:'24',          meta:'覆盖 41 个国家' },
+              { label:'平均我方分成',  val:'88.4%',       meta:'↑ 0.8%', up:true },
+              { label:'待对账金额',    val:'$142,800',    meta:'↓ 需尽快处理', warn:true },
+            ].map((s,i) => (
               <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
                 <div className="text-xs text-gray-400 mb-1.5">{s.label}</div>
                 <div className="text-xl font-bold text-gray-900 tracking-tight">{s.val}</div>
-                <div className={`text-xs mt-1 ${s.warn ? 'text-red-500' : s.up ? 'text-green-500' : 'text-gray-400'}`}>{s.meta}</div>
+                <div className={`text-xs mt-1 ${s.warn?'text-red-500':s.up?'text-green-500':'text-gray-400'}`}>{s.meta}</div>
               </div>
             ))}
           </div>
 
-          {/* Filter bar */}
+          {/* filter */}
           <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 h-8 focus-within:border-blue-400 focus-within:bg-white transition-colors">
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 h-8 focus-within:border-indigo-400 focus-within:bg-white transition-colors">
               <span className="text-gray-400 text-sm">🔍</span>
               <input className="bg-transparent text-sm outline-none w-36 placeholder-gray-400"
                 placeholder="搜索渠道…" value={search} onChange={e => setSearch(e.target.value)}/>
             </div>
             {[
-              { label:'年份', val:year, set:setYear, opts:[['2026','2026'],['2025','2025']] },
-              { label:'月份', val:month, set:setMonth, opts:[['3','3月'],['2','2月'],['1','1月']] },
-              { label:'项目', val:proj, set:setProj, opts:[['','全部项目'],['1','跃动'],['2','星辰'],['3','极光']] },
+              { label:'年份', opts:[['2026','2026'],['2025','2025']] },
+              { label:'月份', opts:[['3','3月'],['2','2月'],['1','1月']] },
+              { label:'项目', opts:[['','全部项目'],['1','跃动'],['2','星辰']] },
             ].map(f => (
               <div key={f.label} className="flex items-center gap-1.5">
                 <span className="text-xs text-gray-500">{f.label}</span>
-                <select className="h-8 border border-gray-200 rounded-lg px-2 text-sm bg-white focus:outline-none focus:border-blue-400"
-                  value={f.val} onChange={e => f.set(e.target.value)}>
+                <select className="h-8 border border-gray-200 rounded-lg px-2 text-sm bg-white focus:outline-none focus:border-indigo-400">
                   {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
             ))}
-            <div className="ml-auto flex gap-2">
-              <button className="px-3 h-8 bg-white border border-gray-200 hover:border-blue-400 hover:text-blue-500 text-sm text-gray-600 rounded-lg transition-colors">↓ 导出</button>
+            <div className="ml-auto">
+              <button className="px-3 h-8 bg-white border border-gray-200 hover:border-indigo-400 hover:text-indigo-500 text-sm text-gray-600 rounded-lg transition-colors">↓ 导出</button>
             </div>
           </div>
 
-          {/* Table */}
+          {/* table */}
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex-1">
             <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -457,11 +501,13 @@ function App() {
                       <td className="px-4 py-3 text-gray-500 text-xs">{r.region}</td>
                       <td className="px-4 py-3 text-gray-700 font-mono">{r.amount}</td>
                       <td className="px-4 py-3 text-gray-500">{r.fee}</td>
-                      <td className="px-4 py-3"><ShareCell v={r.share} num={r.shareNum}/></td>
-                      <td className="px-4 py-3"><StatusBadge s={r.status}/></td>
+                      <td className="px-4 py-3">
+                        <span className={`font-semibold ${r.shareN>=80?'text-green-600':r.shareN>=50?'text-gray-700':'text-red-500'}`}>{r.share}</span>
+                      </td>
+                      <td className="px-4 py-3"><Badge s={r.status}/></td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <button className="px-2.5 py-1 text-xs text-blue-500 hover:bg-blue-50 rounded-md transition-colors">详情</button>
+                          <button className="px-2.5 py-1 text-xs text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors">详情</button>
                           <span className="text-gray-200">|</span>
                           <button className="px-2.5 py-1 text-xs text-gray-400 hover:bg-gray-100 rounded-md transition-colors">导出</button>
                         </div>
@@ -474,19 +520,17 @@ function App() {
             <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
               <span className="text-xs text-gray-400">共 {rows.length} 条</span>
               <div className="flex gap-1">
-                {['‹','1','2','›'].map((p, i) => (
-                  <button key={i} className={`w-7 h-7 text-xs rounded border transition-colors ${p==='1' ? 'bg-blue-500 text-white border-blue-500' : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-500'}`}>{p}</button>
+                {['‹','1','2','3','›'].map((p,i) => (
+                  <button key={i} className={`w-7 h-7 text-xs rounded border transition-colors ${p==='1'?'bg-indigo-500 text-white border-indigo-500':'border-gray-200 text-gray-500 hover:border-indigo-400 hover:text-indigo-500'}`}>{p}</button>
                 ))}
               </div>
             </div>
           </div>
-
         </div>
       </main>
 
-      {/* AI Assistant */}
-      {panelOpen && <AIPanel onClose={() => setPanelOpen(false)}/>}
-      <FAB open={panelOpen} onClick={() => setPanelOpen(v => !v)}/>
+      {panelOpen && <AIPanel onClose={() => setPanel(false)}/>}
+      <FAB open={panelOpen} onClick={() => setPanel(v => !v)}/>
     </div>
   );
 }
